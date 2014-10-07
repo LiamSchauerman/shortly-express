@@ -109,7 +109,10 @@ function(req, res) {
     .fetch()
     .then(function(found) {
       if(found){
-        res.redirect('/');
+        req.session.regenerate(function() {
+          req.session.user = req.body.username;
+          res.redirect('/');
+        });
       } else {
         res.redirect('/login');
       }
