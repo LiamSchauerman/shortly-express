@@ -84,6 +84,22 @@ app.post('/signup',
     })
   });
 
+app.post('/login',
+  function(req, res) {
+  new User({username: req.body.username}).fetch()
+    .then(function(found) {
+      if(found){
+        res.redirect('/');
+      } else {
+        res.redirect('/login');
+      }
+    });
+  });
+
+
+
+
+
 /************************************************************/
 // Write your authentication routes here
 /************************************************************/
