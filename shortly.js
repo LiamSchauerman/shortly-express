@@ -97,9 +97,13 @@ function(req, res) {
   new User({
     username: req.body.username,
     password: req.body.password
-  }).save().then(function(newUser){
-    Users.add(newUser);
-    res.redirect('/');
+  }).save()
+    .then(function(newUser){
+      Users.add(newUser);
+      req.session.regenerate(function() {
+        req.session.user = req.body.username;
+        res.redirect('/');
+      });
   });
 });
 
