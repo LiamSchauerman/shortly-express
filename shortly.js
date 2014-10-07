@@ -39,6 +39,8 @@ function(req, res) {
 
 app.get('/links', util.checkUser,
 function(req, res) {
+  // join links and users table ?
+
   Links.reset().fetch().then(function(links) {
     res.send(200, links.models);
   });
