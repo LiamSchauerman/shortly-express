@@ -109,12 +109,16 @@ function(req, res) {
 
 app.post('/login',
 function(req, res) {
-  new User({username: req.body.username})
+  new User({
+    username: req.body.username,
+    password: req.body.password
+  })
     .fetch()
-    .then(function(found) {
-      if(found){
+    .then(function(user) {
+      if(user){
         req.session.regenerate(function() {
           req.session.user = req.body.username;
+          req.session.password = req.body.password;
           res.redirect('/');
         });
       } else {
