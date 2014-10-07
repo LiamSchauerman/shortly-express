@@ -1,8 +1,9 @@
 var express = require('express');
+var cookieParser = require('cookie-parser');
+var session = require('express-session');
 var util = require('./lib/utility');
 var partials = require('express-partials');
 var bodyParser = require('body-parser');
-
 
 var db = require('./app/config');
 var Users = require('./app/collections/users');
@@ -17,14 +18,17 @@ app.set('views', __dirname + '/views');
 app.set('view engine', 'ejs');
 app.use(partials());
 // Parse JSON (uniform resource locators)
-app.use(bodyParser.json());
 // Parse forms (signup/login)
-app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static(__dirname + '/public'));
 
+app.use(cookieParser());
+app.use(session( {secret: 'secret'} ));
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
 
-app.get('/',
+app.get('/', util.signedIn,
 function(req, res) {
+  console.log(req.session)
   res.render('index');
 });
 
