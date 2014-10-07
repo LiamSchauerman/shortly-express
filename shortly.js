@@ -1,9 +1,9 @@
 var express = require('express');
-var cookieParser = require('cookie-parser');
-var session = require('express-session');
 var util = require('./lib/utility');
 var partials = require('express-partials');
 var bodyParser = require('body-parser');
+var cookieParser = require('cookie-parser');
+var session = require('express-session');
 
 var db = require('./app/config');
 var Users = require('./app/collections/users');
@@ -18,33 +18,33 @@ app.set('views', __dirname + '/views');
 app.set('view engine', 'ejs');
 app.use(partials());
 // Parse JSON (uniform resource locators)
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
 // Parse forms (signup/login)
+
 app.use(express.static(__dirname + '/public'));
 
 app.use(cookieParser());
-app.use(session( {secret: 'secret'} ));
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true }));
+app.use(session( {secret: 'This is my secret string'} ));
 
-app.get('/', util.signedIn,
-function(req, res) {
-  console.log(req.session)
-  res.render('index');
-});
-
-app.get('/create',
+app.get('/', util.checkUser,
 function(req, res) {
   res.render('index');
 });
 
-app.get('/links',
+app.get('/create', util.checkUser,
+function(req, res) {
+  res.render('index');
+});
+
+app.get('/links', util.checkUser,
 function(req, res) {
   Links.reset().fetch().then(function(links) {
     res.send(200, links.models);
   });
 });
 
-app.post('/links',
+app.post('/links', util.checkUser,
 function(req, res) {
   var uri = req.body.url;
   if (!util.isValidUrl(uri)) {
@@ -77,20 +77,36 @@ function(req, res) {
   });
 });
 
+
+/************************************************************/
+// Write your authentication routes here
+/************************************************************/
+
+app.get('/login',
+function(req, res) {
+    res.render('login');
+});
+
+app.get('/signup',
+function(req, res) {
+    res.render('signup');
+});
+
 app.post('/signup',
-  function(req, res) {
-    new User({
-      username: req.body.username,
-      password: req.body.password
-    }).save().then(function(newUser){
-      Users.add(newUser);
-      res.redirect('/');
-    })
+function(req, res) {
+  new User({
+    username: req.body.username,
+    password: req.body.password
+  }).save().then(function(newUser){
+    Users.add(newUser);
+    res.redirect('/');
   });
+});
 
 app.post('/login',
-  function(req, res) {
-  new User({username: req.body.username}).fetch()
+function(req, res) {
+  new User({username: req.body.username})
+    .fetch()
     .then(function(found) {
       if(found){
         res.redirect('/');
@@ -98,16 +114,7 @@ app.post('/login',
         res.redirect('/login');
       }
     });
-  });
-
-
-
-
-
-/************************************************************/
-// Write your authentication routes here
-/************************************************************/
-
+});
 
 
 /************************************************************/
