@@ -100,10 +100,7 @@ function(req, res) {
   }).save()
     .then(function(newUser){
       Users.add(newUser);
-      req.session.regenerate(function() {
-        req.session.user = req.body.username;
-        res.redirect('/');
-      });
+      util.addSession(req, res);
   });
 });
 
@@ -116,11 +113,7 @@ function(req, res) {
     .fetch()
     .then(function(user) {
       if(user){
-        req.session.regenerate(function() {
-          req.session.user = req.body.username;
-          req.session.password = req.body.password;
-          res.redirect('/');
-        });
+        util.addSession(req, res);
       } else {
         res.redirect('/login');
       }
@@ -129,10 +122,7 @@ function(req, res) {
 
 app.get('/logout',
   function(req, res){
-    req.session.destroy(function(err){
-      if(err) throw err;
-      res.redirect('/login');
-    })
+    util.removeSession(req, res);
   })
 
 /************************************************************/
