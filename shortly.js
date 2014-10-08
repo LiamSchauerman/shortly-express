@@ -11,6 +11,7 @@ var User = require('./app/models/user');
 var Links = require('./app/collections/links');
 var Link = require('./app/models/link');
 var Click = require('./app/models/click');
+var bcrypt = require('bcrypt');
 
 var app = express();
 
@@ -39,9 +40,10 @@ function(req, res) {
 
 app.get('/links', util.checkUser,
 function(req, res) {
-  // join links and users table ?
-
-  Links.reset().fetch().then(function(links) {
+  var username = req.session.user;
+  // TODO: Add a filter to fetch only links that belong to the current user
+  Links.reset()
+  .fetch().then(function(links) {
     res.send(200, links.models);
   });
 });
@@ -96,29 +98,37 @@ function(req, res) {
 
 app.post('/signup',
 function(req, res) {
-  new User({
-    username: req.body.username,
-    password: req.body.password
-  }).save()
-    .then(function(newUser){
-      Users.add(newUser);
-      util.addSession(req, res);
+//hashing password
+  bcrypt.genSalt(10, function(err, salt) {
+    bcrypt.hash(req.body.password, salt, function(err, hash) {
+      new User({
+        username: req.body.username,
+        password: hash
+      }).save()
+        .then(function(newUser){
+          Users.add(newUser);
+          util.addSession(req, res);
+      });
+    });
   });
 });
 
 app.post('/login',
 function(req, res) {
+  // TO DO: match provided password against hashed password
   new User({
-    username: req.body.username,
-    password: req.body.password
+    username: req.body.username
   })
     .fetch()
     .then(function(user) {
-      if(user){
-        util.addSession(req, res);
-      } else {
-        res.redirect('/login');
-      }
+      console.log(user);
+      bcrypt.compare(req.body.password, user.get('password'), function(err, match){
+        if(match) { // passwords match
+          util.addSession(req, res);
+        } else {
+          res.redirect('/login');
+        }
+      })
     });
 });
 
